@@ -1,2 +1,2 @@
 language = "bash"
-run = "sh -v ./make.sh"
+run = "sh ./.run.sh"

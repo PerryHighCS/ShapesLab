@@ -24,9 +24,10 @@ public class Picture {
 
         pic.redraw();
 
-        String filename = "MyPicture.png";
+        String filename = "WinterScene.mp4";
+        int videoLength = 30; // seconds
         try {
-            pic.saveToFile(new File(filename));
+            pic.saveToVideoFile(new File(filename), videoLength);
             System.err.println("Picture saved to " + filename);
         } catch (IOException e) {
             System.err.println(e);

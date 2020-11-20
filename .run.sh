@@ -12,5 +12,5 @@ echo running...
 
 # run the packaged project
 java -cp .:./lib/jcodec-0.2.5.jar:./lib/jcodec-javase-0.2.5.jar \
-    Picture -D java.awt.headless=true 
+    Main -D java.awt.headless=true 
     

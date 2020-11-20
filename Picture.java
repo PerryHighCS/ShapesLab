@@ -1,4 +1,3 @@
-
 /**
  * Draw a pretty picture composed of shape objects on a canvas
  * 
@@ -71,17 +70,5 @@ public class Picture {
         ball.setPosition(x, y);
         
         canvas.redraw();
-    }
-    
-    
-    public static void main(String[] args) {
-        String filename = "WinterScene.mp4";
-        int videoLength = 30; // seconds
-        try {
-            Canvas.saveToVideoFile(new File(filename), videoLength);            
-        } catch (IOException e) {
-            System.err.println(e);
-            System.err.println("Could not save file.");
-        }
     }
 }

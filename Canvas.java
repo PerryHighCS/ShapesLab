@@ -1,6 +1,4 @@
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -13,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
+
+import org.jcodec.api.awt.AWTSequenceEncoder;
 
 /**
  * Canvas is a class to allow for simple graphical drawing on a canvas. This is
@@ -44,12 +44,18 @@ public class Canvas {
     }
 
     //  ----- instance part -----
-    private int width;
-    private int height;
+    private final int width;
+    private final int height;
     private Color backgroundColor;
     private final Map<Object, DrawShape> shapes;
     private String title;
     private boolean paused = false;
+    private AWTSequenceEncoder videoEncoder;
+    private double videoLength;
+    private int recordedFrames;
+    
+    private static final int FPS = 30;
+    
     /**
      * Create a Canvas.
      *
@@ -195,7 +201,36 @@ public class Canvas {
      * Redraw all shapes currently on the Canvas.
      */
     public void redraw() {
-        return; // do nothing in headless mode
+        // Only draw if there is a video to draw for
+        if (videoEncoder != null) {
+            // Create an image to hold the drawing
+            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            Graphics bgc = img.createGraphics();
+            
+            // Update the drawing
+            redraw(bgc);            
+            bgc.dispose();
+            
+            // Encode the drawing as a video frame
+            try {
+                videoEncoder.encodeImage(img);
+                recordedFrames++;
+                
+                // Update the time counter
+                if (recordedFrames % FPS == 0) {
+                    System.out.println(String.format("Recorded %.1f sec", (double)recordedFrames / FPS));
+                }
+            }
+            catch (IOException | IllegalStateException e) {
+                System.err.println("Recording failed");
+                System.err.println(e);
+                stopRecording();
+            }
+            
+            if (recordedFrames >= videoLength * FPS) {
+                stopRecording();
+            }
+        }
     }
 
     /**
@@ -216,6 +251,7 @@ public class Canvas {
      * Transform a color string into a usable color
      *
      * @param colorString the new color for the foreground of the Canvas
+     * @return the AWT color represented by the color string
      */
     public static Color getColor(String colorString) {
         Color c;
@@ -254,8 +290,7 @@ public class Canvas {
      * Save the current canvas to the file
      * 
      * @param file the File object to save to.
-     * 
-     * @return true if the file saved correctly, false if the save failed.
+     * @throws java.io.IOException if file cannot be saved
      */
     public void saveToFile(File file) throws IOException {
         Font font = new Font("SansSerif", Font.PLAIN, 20);
@@ -291,6 +326,42 @@ public class Canvas {
         // Save the image
         ImageIO.write(buffer, "png", file);
     }
+    
+    private void makeVideo(File file, int videoLength) throws IOException {
+        this.recordedFrames = 0;
+        this.videoLength = videoLength;        
+        this.videoEncoder = AWTSequenceEncoder.createSequenceEncoder(file, FPS);
+    }
+    
+    public boolean isRecording() {
+        return videoEncoder != null;
+    }
+    
+    public void stopRecording() {
+        try {
+            videoEncoder.finish();
+            System.out.println("Video recorded successfully.");
+        } catch (IOException ex) {
+            System.err.println("Could not write to video file!");
+        }
+        videoEncoder = null;
+    }
+    
+    public static void saveToVideoFile(File file, int videoLength) throws IOException {
+        Canvas canvas = Canvas.getCanvas();
+        
+        System.out.println("Saving " + videoLength + " second video to " + file.getPath());
+        
+        canvas.makeVideo(file, videoLength);
+        
+        Picture pic = new Picture();
+        
+        while (canvas.isRecording()) {
+            pic.update();
+        }
+    }
+
+   
 
     /**
      * ***********************************************************************

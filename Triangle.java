@@ -1,10 +1,9 @@
-import java.awt.Graphics;
 import java.awt.Color;
 
 /**
  * A triangle that can be manipulated and that draws itself on a canvas.
  * 
- * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @author  Michael Kolling and David J. Barnes and Brian Dahlem
  * @version 2018.11.26
  */
 
@@ -30,6 +29,23 @@ public class Triangle
         isVisible = false;
     }
     
+
+    /**
+     * Create a new triangle with a specified position and color.
+     */
+    public Triangle(int x, int y, int width, int height, String color, boolean visible)
+    {
+        this.height = height;
+        this.width = width;
+        xPosition = x;
+        yPosition = y;
+        this.color = Canvas.getColor(color);
+                
+        if (visible) {
+            makeVisible();
+        }
+    }
+
     /**
      * Make this triangle visible. If it was already visible, do nothing.
      */
@@ -53,7 +69,80 @@ public class Triangle
             isVisible = false;
         }
     }
-
+    
+    /**
+     * Determine if the triangle should be showing on the canvas
+     * @return true if the shape is not hidden
+     */
+    public boolean isVisible()
+    {
+        return isVisible;
+    }
+            
+    /**
+     * Get the triangle's X position
+     */
+    public int getX() {
+        return xPosition;
+    }
+    
+    /**
+     * Set the triangle's X position
+     */
+    public void setX(int x) {
+        this.xPosition = x;
+    }    
+    
+    /**
+     * Get the triangle's Y position
+     */
+    public int getY() {
+        return yPosition;
+    }
+    
+    /**
+     * Set the triangle's Y position
+     */
+    public void setY(int y) {
+        this.yPosition = y;
+    }
+    
+    /**
+     * Set the triangle's position on the screen
+     */
+    public void setPosition(int x, int y) {
+        this.xPosition = x;
+        this.yPosition = y;
+    }
+    
+    /**
+     * Determine the triangle's current width
+     */
+    public int getWidth() {
+        return this.width;
+    }
+    
+    /**
+     * Determine the triangle's current height
+     */
+    public int getHeight() {
+        return this.height;
+    }
+    
+    /**
+     * Change the triangle's width
+     */
+    public void setWidth(int width) {
+        this.width = width;
+    }
+    
+    /**
+     * Change the triangle's height
+     */
+    public void setHeight(int height) {
+        this.height = height;
+    }
+    
     /**
      * Move the triangle a few pixels to the right.
      */

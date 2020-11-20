@@ -1,10 +1,9 @@
-import java.awt.Graphics;
 import java.awt.Color;
 
 /**
  * An arc that can be manipulated and that draws itself on a canvas.
  * 
- * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @author  Michael Kolling and David J. Barnes and Brian Dahlem
  * @version 2018.11.26
  */
 
@@ -309,7 +308,7 @@ public class Arc
         if(isVisible) {
             Canvas canvas = Canvas.getCanvas();
             canvas.add(this, (g) -> {g.setColor(color);
-                                     g.fillArc(xPosition, yPosition,
+                                      g.fillArc(xPosition, yPosition,
                                                 diameter, diameter,
                                                 startAngle, extent);});
         }

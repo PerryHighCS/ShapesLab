@@ -1,10 +1,9 @@
-import java.awt.Graphics;
 import java.awt.Color;
 
 /**
  * A circle that can be manipulated and that draws itself on a canvas.
  * 
- * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @author  Michael Kolling and David J. Barnes and Brian Dahlem
  * @version 2018.11.26
  */
 
@@ -28,6 +27,21 @@ public class Circle
     }    
     
     /**
+     * Create a new circle with a specified position and color.
+     */
+    public Circle(int x, int y, int diameter, String color, boolean visible)
+    {
+        this.diameter = diameter;
+        xPosition = x;
+        yPosition = y;
+        this.color = Canvas.getColor(color);
+        
+        if (visible) {
+            makeVisible();
+        }
+    }
+
+    /**
      * Make this circle visible. If it was already visible, do nothing.
      */
     public void makeVisible()
@@ -47,6 +61,58 @@ public class Circle
             remove();
             isVisible = false;
         }
+    }   
+        
+    /**
+     * Determine if the circle should be showing on the canvas
+     * @return true if the shape is not hidden
+     */
+    public boolean isVisible()
+    {
+        return isVisible;
+    }
+    
+    /**
+     * Get the circle's X position
+     */
+    public int getX() {
+        return xPosition;
+    }
+    
+    /**
+     * Set the circle's X position
+     */
+    public void setX(int x) {
+        this.xPosition = x;
+    }    
+    
+    /**
+     * Get the circle's Y position
+     */
+    public int getY() {
+        return yPosition;
+    }
+    
+    /**
+     * Set the circle's Y position
+     */
+    public void setY(int y) {
+        this.yPosition = y;
+    }
+    
+    /**
+     * Set the circle's position on the screen
+     */
+    public void setPosition(int x, int y) {
+        this.xPosition = x;
+        this.yPosition = y;
+    }
+    
+    /**
+     * Get the circle's current diameter
+     */
+    public int getDiameter() {
+        return this.diameter;
     }
     
     /**
@@ -130,7 +196,8 @@ public class Circle
         if(isVisible) {
             Canvas canvas = Canvas.getCanvas();
             canvas.add(this,(g) -> {g.setColor(color);
-                                    g.fillOval(xPosition, yPosition, diameter, diameter);});
+                                    g.fillOval(xPosition, yPosition,
+                                               diameter, diameter);});
         }
     }
 

@@ -1,10 +1,9 @@
-import java.awt.Graphics;
 import java.awt.Color;
 
 /**
  * A rectangle that can be manipulated and that draws itself on a canvas.
  *
- * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @author  Michael Kolling and David J. Barnes and Brian Dahlem
  * @version 2018.11.26
  */
 
@@ -31,6 +30,22 @@ public class Rect
     }
 
     /**
+     * Create a new rectangle at a specified position and color.
+     */
+    public Rect(int x, int y, int width, int height, String color, boolean visible)
+    {
+        xSize = width;
+        ySize = height;
+        xPosition = x;
+        yPosition = y;
+        this.color = Canvas.getColor(color);
+                    
+        if (visible) {
+            makeVisible();
+        }
+    }
+
+    /**
      * Make this rectangle visible. If it was already visible, do nothing.
      */
     public void makeVisible()
@@ -51,6 +66,81 @@ public class Rect
             isVisible = false;
         }
     }
+    
+    /**
+     * Determine if the rectangle should be showing on the canvas
+     * @return true if the shape is not hidden
+     */
+    public boolean isVisible()
+    {
+        return isVisible;
+    }
+    
+    
+    /**
+     * Get the rectangle's X position
+     */
+    public int getX() {
+        return xPosition;
+    }
+    
+    /**
+     * Set the rectangle's X position
+     */
+    public void setX(int x) {
+        this.xPosition = x;
+    }    
+    
+    /**
+     * Get the rectangle's Y position
+     */
+    public int getY() {
+        return yPosition;
+    }
+    
+    /**
+     * Set the rectangle's Y position
+     */
+    public void setY(int y) {
+        this.yPosition = y;
+    }
+    
+    /**
+     * Set the rectangle's position on the screen
+     */
+    public void setPosition(int x, int y) {
+        this.xPosition = x;
+        this.yPosition = y;
+    }
+    
+    /**
+     * Determine the rectangle's current width
+     */
+    public int getWidth() {
+        return this.xSize;
+    }
+    
+    /**
+     * Determine the rectangle's current height
+     */
+    public int getHeight() {
+        return this.ySize;
+    }
+    
+    /**
+     * Change the rectangle's width
+     */
+    public void setWidth(int width) {
+        this.xSize = width;
+    }
+    
+    /**
+     * Change the rectangle's height
+     */
+    public void setHeight(int height) {
+        this.ySize = height;
+    }
+    
 
     /**
      * Move the rectangle a few pixels to the right.

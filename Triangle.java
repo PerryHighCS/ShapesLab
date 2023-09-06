@@ -1,4 +1,6 @@
+import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 
 /**
@@ -14,6 +16,7 @@ public class Triangle
     private int width;
     private int xPosition;
     private int yPosition;
+    private int rotation;
     private Color color;
     private boolean isVisible;
 
@@ -26,6 +29,7 @@ public class Triangle
         width = 70;
         xPosition = 210;
         yPosition = 140;
+        rotation = 0;
         color = Canvas.getColor("green");
         isVisible = false;
     }
@@ -130,20 +134,39 @@ public class Triangle
     }
 
     /**
+     * Rotate the triangle to a given angle.
+     * @param degrees the angle to turn the triangle to.
+     */
+    public void setRotation(int degrees)
+    {
+        this.rotation = degrees;    
+    }
+    
+    /**
      * Draw a triangle with current specifications on the screen.
      */
     private void add()
     {
         if(isVisible) {
             Canvas canvas = Canvas.getCanvas();
-            canvas.add(this, (g) -> {int[] xpoints = {xPosition, 
-                                                      xPosition + (width/2),
-                                                      xPosition - (width/2)};
-                                     int[] ypoints = {yPosition,
-                                                      yPosition + height,
-                                                      yPosition + height};
-                                     g.setColor(color);
-                                     g.fillPolygon(xpoints, ypoints, 3);});                                             
+            canvas.add(this, (g) -> {
+                                        Graphics2D g2D = (Graphics2D)g;
+                                        AffineTransform original = g2D.getTransform();
+                                        
+                                        g2D.translate(xPosition, yPosition);
+                                        g2D.rotate(Math.toRadians(rotation));
+                                        
+                                        int[] xpoints = {0, 
+                                                         -(width/2),
+                                                         (width/2)};
+                                        int[] ypoints = {0,
+                                                         height,
+                                                         height};
+                                        g2D.setColor(color);
+                                        g2D.fillPolygon(xpoints, ypoints, 3);
+                                        
+                                        g2D.setTransform(original);
+                                    });                                             
         }
     }
 

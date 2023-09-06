@@ -1,17 +1,29 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.Image;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
+import javax.swing.JDialog;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.Timer;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JFileChooser;
@@ -27,7 +39,7 @@ import javax.swing.JOptionPane;
  * "shapes" example.
  *
  * @author: Bruce Quig Michael Kölling Brian Dahlem
- * @version 2018.11.26
+ * @version 2021.9.9
  */
 public class Canvas {
     // Note: The implementation of this class (specifically the handling of
@@ -63,6 +75,14 @@ public class Canvas {
     private boolean paused = false;
     private boolean firstShown = false;
     private boolean drawing = false;
+    private JDialog recWindow;
+    private long recFrames = 0;
+    private JLabel timeLabel;
+    private JPopupMenu popMenu;
+    private JMenuItem savePic;
+    private JMenuItem saveVid;
+
+    private static final int FPS = 30;
 
     /**
      * Create a Canvas.
@@ -90,62 +110,33 @@ public class Canvas {
         frame.pack();
         shapes = new LinkedHashMap<>(1000);
 
-        // Listen for Ctrl-S to save the picture
-        frame.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    // If Ctrl-S is pressed...
-                    if ((e.getKeyCode() == KeyEvent.VK_S) && 
-                    ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) == KeyEvent.CTRL_DOWN_MASK)) {
+        // Add a context menu to allow saving the canvas
+        popMenu = new JPopupMenu() {
+            {
+                savePic = new JMenuItem("Save as png...");
+                savePic.addActionListener(e->savePic());
+                add(savePic);
+            }
+        };
 
-                        // Ask the user for a filename to save to.
-                        JFileChooser fc = new JFileChooser();
-                        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                                "PNG Images", "png");
-                        fc.setFileFilter(filter);
-                        int returnVal = fc.showSaveDialog(frame);
+        // Add a mouse listener that will pop up the context menu
+        canvas.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                doPop(e);
+            }
+            public void mouseReleased(MouseEvent e) {
+                doPop(e);
+            }
 
-                        // Cancel if the user pressed "Cancel"...
-                        if (returnVal == JFileChooser.CANCEL_OPTION) {
-                            return;
-                        }
-
-                        // Get the name of the file the user entered
-                        File file = fc.getSelectedFile();
-                        String fname = file.getAbsolutePath();
-                        if (!fname.endsWith(".png")) {
-                            file = new File(fname + ".png");
-                        }
-
-                        // If that file exists, confirm overwrite.
-                        if (file.exists()) {
-                            int overwrite = JOptionPane.showConfirmDialog(frame,
-                                    "A file named " + file + " exists.\nOverwrite?", "File Exists",
-                                    JOptionPane.YES_NO_OPTION);
-
-                            if (overwrite == JOptionPane.NO_OPTION) {
-                                return;
-                            }
-                        }
-
-                        try {
-                            saveToFile(file);
-
-                            // Inform the user of success in saving.
-                            JOptionPane.showMessageDialog(frame,
-                                "Image saved to: " + file, "File Saved",
-                                JOptionPane.INFORMATION_MESSAGE);
-                        } catch (java.io.IOException exc) {
-                            // Alert the user if there is an error.
-                            JOptionPane.showMessageDialog(frame,
-                                "Could not save image to: " + file, "File Error",
-                                JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
+            private void doPop(MouseEvent e) {
+                if (!e.isPopupTrigger()) {
+                    return;
                 }
-            });
+                
+                popMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        });
     }
-
     /**
      * Set the canvas visibility and brings canvas to the front of screen when
      * made visible. This method can also be used to bring an already visible
@@ -225,7 +216,7 @@ public class Canvas {
     }
 
     /**
-     * Erase a given shape's from the screen.
+     * Erase a given shape from the screen.
      *
      * @param referenceObject the shape object to be erased
      */
@@ -291,32 +282,29 @@ public class Canvas {
      * Redraw all shapes currently on the Canvas.
      */
     public void redraw() {
-        Graphics buffer = bs.getDrawGraphics();
-
-        redraw(buffer);
-
-        buffer.dispose();
-        bs.show();
+        // Draw the shapes on the next buffer's graphics context
+        if (bs != null) {
+            Graphics gc = bs.getDrawGraphics();
+            redraw(gc);
+            gc.dispose();
+    
+            // Show the buffer
+            bs.show();
+        }
     }
 
     /**
      * Redraw all shapes onto a graphics context
      */
-    private void redraw(Graphics buffer) {
+    private void redraw(Graphics gc) {
         synchronized (shapes) {
-            buffer.setColor(backgroundColor);
+            // Draw the background
+            gc.setColor(backgroundColor);
             Dimension size = canvas.getSize();
-            buffer.fillRect(0, 0, size.width, size.height);
+            gc.fillRect(0, 0, size.width, size.height);
 
-            shapes.forEach((i, shape) -> {
-                    shape.draw(buffer);
-                });
-
-            /*
-            for(Shape k : shapes) {
-            shape.draw(buffer);
-            }             
-             */
+            // Draw all of the shapes
+            shapes.forEach((k, shape) -> shape.draw(gc));
         }
     }
 
@@ -372,21 +360,51 @@ public class Canvas {
     }
 
     /**
-     * Save the current canvas to the file
-     * 
-     * @param file the File object to save to.
-     * 
-     * @return true if the file saved correctly, false if the save failed.
+     * **********************************************************************
+     * Inner class CanvasPane - the actual canvas component contained in the
+     * Canvas frame.
      */
-    public void saveToFile(File file) throws IOException {
+    private class CanvasPane extends java.awt.Canvas {
+        @Override
+        public void paint(Graphics g) {
+            redraw();
+        }
+    }
+
+    /**
+     * ***********************************************************************
+     * Inner interface DrawShape - a functional interface that allows a shape to
+     * provide the canvas with a method to draw the shape
+     */
+    public interface DrawShape {
+        public void draw(Graphics g);
+    }
+
+    private void savePic() {
+        File file = newFile("png", "PNG Images");
+        if (file == null) {
+            return;
+        }
+        
+        // If that file exists, confirm overwrite.
+        if (file.exists()) {
+            int overwrite = JOptionPane.showConfirmDialog(frame,
+                    "A file named " + file + " exists.\nOverwrite?", "File Exists",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (overwrite == JOptionPane.NO_OPTION) {
+                return;
+            }
+        }
+
         Font font = new Font("SansSerif", Font.PLAIN, 20);
 
         try {
             InputStream fnt_stream = getClass().getResourceAsStream("Caveat.ttf");
             Font myFont = Font.createFont(Font.TRUETYPE_FONT, fnt_stream);
             font = myFont.deriveFont(Font.BOLD, 20f);
-        } catch (FontFormatException | IOException ex) {
-
+        } catch (FontFormatException | IOException ign) {
+            // Ignore font exceptions and go with default font
         }
 
         FontMetrics fm = canvas.getFontMetrics(font);
@@ -406,27 +424,62 @@ public class Canvas {
         bgc.drawString(frame.getTitle(), 0, height + fm.getAscent() + 1);
 
         // Save the image
-        ImageIO.write(buffer, "png", file);
-    }
+        try {
+            ImageIO.write(buffer, "png", file);
 
-    /**
-     * **********************************************************************
-     * Inner class CanvasPane - the actual canvas component contained in the
-     * Canvas frame.
-     */
-    private class CanvasPane extends java.awt.Canvas {
-        @Override
-        public void paint(Graphics g) {
-            redraw();
+            // Inform the user of success in saving.
+            JOptionPane.showMessageDialog(frame,
+                "Image saved to: " + file, "File Saved",
+                JOptionPane.INFORMATION_MESSAGE);
+        } catch (java.io.IOException exc) {
+            // Alert the user if there is an error.
+            JOptionPane.showMessageDialog(frame,
+                "Could not save image to: " + file, "File Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    private File newFile(String fileExtention, String fileTypeDescription) {
+        // Ask the user for a filename to save to.
+        JFileChooser fc = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                fileTypeDescription, fileExtention);
+        fc.setFileFilter(filter);
+        int returnVal = fc.showSaveDialog(frame);
 
-    /**
-     * ***********************************************************************
-     * Inner interface DrawShape - a functional interface that allows a shape to
-     * provide the canvas with a method to draw the shape
-     */
-    public interface DrawShape {
-        public void draw(Graphics g);
+        // Cancel if the user pressed "Cancel"...
+        if (returnVal == JFileChooser.CANCEL_OPTION) {
+            return null;
+        }
+
+        // Get the name of the file the user entered
+        File file = fc.getSelectedFile();
+        String fname = file.getAbsolutePath();
+
+        if (!fname.endsWith("." + fileExtention)) {
+            fname = fname + "." + fileExtention;
+        }
+
+        file = new File(fname);
+
+        // If that file exists, confirm overwrite.
+        if (file.exists()) {
+            int overwrite = JOptionPane.showConfirmDialog(frame,
+                    "A file named " + file + " exists.\nOverwrite?", "File Exists",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (overwrite == JOptionPane.NO_OPTION) {
+                return null;
+            }
+        }
+        
+        return file;
+    }
+        
+    public static void makePic() {
+        Canvas c = Canvas.getCanvas();
+        
+        c.savePic();
+        c.frame.dispose();
     }
 }

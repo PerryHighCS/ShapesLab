@@ -1,4 +1,6 @@
+import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 
 /**
@@ -14,6 +16,7 @@ public class Rect
     private int yPosition;
     private int xSize;
     private int ySize;
+    private int rotation;
     private Color color;
     private boolean isVisible;
 
@@ -26,6 +29,7 @@ public class Rect
         ySize = 60;
         xPosition = 310;
         yPosition = 120;
+        rotation = 0;
         color = Canvas.getColor("red");
         isVisible = false;
     }
@@ -138,15 +142,33 @@ public class Rect
     }
 
     /**
+     * Rotate the rectangle to a given angle.
+     * @param degrees the angle to turn the rectangle to.
+     */
+    public void setRotation(int degrees)
+    {
+        this.rotation = degrees;    
+    }
+
+    /**
      * Draw a rectangle with current specifications on screen.
      */
     private void add()
     {
         if(isVisible) {
             Canvas canvas = Canvas.getCanvas();
-            canvas.add(this, (g) -> {g.setColor(color);
-                                     g.fillRect(xPosition, yPosition,
-                                                xSize, ySize);});
+            canvas.add(this, (g) -> {
+                                        Graphics2D g2D = (Graphics2D)g;
+                                        AffineTransform original = g2D.getTransform();
+                                        
+                                        g2D.translate(xPosition, yPosition);
+                                        g2D.rotate(Math.toRadians(rotation));
+                                        
+                                        g2D.setColor(color);
+                                        g2D.fillRect(0, 0, xSize, ySize);
+                                        
+                                        g2D.setTransform(original);
+                                    });
         }
     }
 

@@ -1,12 +1,14 @@
+import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 
 
 /**
  * An arc that can be manipulated and that draws itself on a canvas.
  * 
- * @author  Michael KÃ¶lling and David J. Barnes and Brian Dahlem
- * @version 2018.11.26
+ * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @version 2023.6.9
  */
 
 public class Arc
@@ -18,6 +20,7 @@ public class Arc
     private int extent;
     private Color color;
     private boolean isVisible;
+    private int rotation;
     
     /**
      * Create a new arc at default position with default color.
@@ -29,6 +32,7 @@ public class Arc
         yPosition = 75;
         startAngle = 30;
         extent = 120;
+        rotation = 0;
         color = Canvas.getColor("magenta");
     }
     
@@ -290,6 +294,24 @@ public class Arc
         return diameter;
     }
     
+
+    /**
+     * Rotate the arc to a given angle.
+     * @param degrees the angle to turn the arc to.
+     */
+    public void setRotation(int degrees)
+    {
+        this.rotation = degrees;    
+    }
+    
+    /**
+     * Get the current rotation of this arc
+     * @return degrees the arc is rotated by
+     */
+    public int getRotation(int degrees)
+    {
+        return rotation;
+    }
     /**
      * Change the color. Valid colors are "red", "yellow", "blue", "green",
      * "magenta", "cyan", "brown", "white", and "black", or rgb hex strings
@@ -309,10 +331,20 @@ public class Arc
     {
         if(isVisible) {
             Canvas canvas = Canvas.getCanvas();
-            canvas.add(this, (g) -> {g.setColor(color);
-                                     g.fillArc(xPosition, yPosition,
+            canvas.add(this, (g) -> {
+                                     Graphics2D g2D = (Graphics2D)g;
+                                     AffineTransform original = g2D.getTransform();
+                                        
+                                     g2D.translate(xPosition, yPosition);
+                                     g2D.rotate(Math.toRadians(rotation));
+                                        
+                                     g2D.setColor(color);
+                                     g2D.fillArc(0, 0,
                                                 diameter, diameter,
-                                                startAngle, extent);});
+                                                startAngle, extent);                                                
+                                     
+                                     g2D.setTransform(original);
+                                     });
         }
     }
 

@@ -10,8 +10,6 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
@@ -39,7 +37,7 @@ import javax.swing.JOptionPane;
  * "shapes" example.
  *
  * @author: Bruce Quig Michael Kölling Brian Dahlem
- * @version 2021.9.9
+ * @version 2023.6.9
  */
 public class Canvas {
     // Note: The implementation of this class (specifically the handling of

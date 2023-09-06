@@ -20,7 +20,7 @@ public class Picture
         // Draw my picture
         Circle c = new Circle();
         c.makeVisible();
-        
+                
         pic.redraw();
     }
 }

@@ -6,8 +6,8 @@ import java.awt.Color;
 /**
  * A rectangle that can be manipulated and that draws itself on a canvas.
  *
- * @author  Michael KÃ¶lling and David J. Barnes and Brian Dahlem
- * @version 2018.11.26
+ * @author  Michael Kölling and David J. Barnes and Brian Dahlem
+ * @version 2023.6.9
  */
 
 public class Rect
